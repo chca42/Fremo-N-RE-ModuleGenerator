@@ -67,12 +67,12 @@ union() {
     frame(boxW,boxH);
 
     color("blue")
-    translate([-boxW/2+thick/2,boxL/2-thick/2,0])
+    translate([-boxL/2+thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
     frame(boxW,boxH,inv=true);
 
     color("blue")
-    translate([boxW/2-thick/2,boxL/2-thick/2,0])
+    translate([boxL/2-thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
     frame(boxW,boxH,inv=true);
 }
