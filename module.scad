@@ -1,7 +1,7 @@
 
 eps = .01;
-thick = 10;
-lasRad = .1;
+thick = 8;
+lasRad = .05;
 lasWid = 2*lasRad;
 
 module xoffs(offs) { translate([offs,0,0]) children(); }
@@ -53,9 +53,9 @@ module frame(width, height, inv=false)
     }
 }
 
-boxW = 400;
-boxL = 400;
-boxH = 100;
+boxW = 40;
+boxL = 40;
+boxH = 40;
 
 union() {
     color("red")
@@ -67,20 +67,22 @@ union() {
     frame(boxW,boxH);
 
     color("blue")
-    translate([-boxL/2+thick/2,boxL/2-thick/2,0])
+    translate([-boxW/2+thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
-    frame(boxW,boxH,inv=true);
+    frame(boxL,boxH,inv=true);
 
     color("blue")
-    translate([boxL/2-thick/2,boxL/2-thick/2,0])
+    translate([boxW/2-thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
-    frame(boxW,boxH,inv=true);
+    frame(boxL,boxH,inv=true);
 }
 
 !projection()
 {
-    gap = 5;
+    gap = 2;
     translate([0,-boxH,0]) frame(boxW,boxH);
-    translate([0,-2*boxH-gap,0]) frame(boxW,boxH,inv=true);
+    translate([boxW+gap,-boxH]) frame(boxW,boxH);
+    translate([0,-2*boxH-gap,0]) frame(boxL,boxH,inv=true);
+    translate([boxL+gap,-2*boxH-gap,0]) frame(boxL,boxH,inv=true);
 }
 
