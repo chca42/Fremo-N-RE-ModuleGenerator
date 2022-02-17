@@ -28,7 +28,7 @@ module fingerH(H, N, selfT=thick, otherT=thick, inv=false)
             }
         }
         translate([otherT/2,0,0])
-        ccube([otherT+off*eps,H,selfT+eps]);
+        ccube([otherT+off*eps,H+eps,selfT+eps]);
     }
 }
 
