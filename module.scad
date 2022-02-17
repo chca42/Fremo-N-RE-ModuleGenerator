@@ -144,6 +144,7 @@ boxW = 400;
 boxL = 400;
 boxH = 100;
 supportH = 75;
+hdiff = boxH-supportH;
 
 union() {
     color("red")
@@ -191,5 +192,9 @@ projection()
     translate([boxW+gap,-boxH]) frame_nre_f1(supportH);
     translate([0,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
     translate([boxL+gap,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
+    translate([0,-3*boxH-gap+hdiff/2,0]) frame_support(boxL,boxH,supportH);
+    translate([boxL+gap,-3*boxH-gap+hdiff/2,0]) frame_support(boxL,boxH,supportH);
+    translate([0,-4*boxH-gap,0]) frame_nre_f1_intermediate(75);
+    translate([boxL*1.5+gap,-4*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
 }
 
