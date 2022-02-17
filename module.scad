@@ -60,10 +60,17 @@ module frame(width, height, inv=false, N=4)
     }
 }
 
-module frame_simple(width, height, inv=false)
+module frame_side(width, height, sH, inv=false)
 {
-    frame(width, height, inv)
-    ccube([width,height,thick]);
+    difference()
+    {
+        frame(width, height, inv)
+        ccube([width,height,thick]);
+        
+        translate([thick/2,-(height-sH)/2,thick/2])
+        rotate([0,90,0])
+        fingerH(sH, 4, otherT=thick*2, inv=true);
+    }
 }
 
 module frame_support(width, height, sH)
@@ -74,9 +81,8 @@ module frame_support(width, height, sH)
         frame(width, sH, inv=false)
         ccube([width,sH,thick]);
         
-        translate([-width/4,0,-thick/2-eps])
-        cylinder(thick+2*eps, r=15);
-        translate([width/4,0,-thick/2-eps])
+        for(i=[-1:2:1])
+        translate([i*width/4,0,-thick/2-eps])
         cylinder(thick+2*eps, r=15);
         
         translate([thick/2,0,thick/2+eps])
@@ -99,11 +105,9 @@ module frame_nre_f1(sH)
         track_single(h, thick);
         
         for(i=[-1:2:1])
-        {
-            translate([i*w/5,-(h-sH)/2,thick/2])
-            rotate([0,90,0])
-            fingerH(sH, 4, otherT=thick*2, inv=true);
-        }
+        translate([i*w/5,-(h-sH)/2,thick/2])
+        rotate([0,90,0])
+        fingerH(sH, 4, otherT=thick*2, inv=true);
     }
 }
 
@@ -122,16 +126,18 @@ module frame_nre_f1_intermediate(sH)
         track_single(h, thick);
 
         for(i=[-1:2:1])
-        {
-            translate([i*w/5,-(h-sH)/2,thick/2+eps])
-            rotate([180,90,0])
-            fingerH(sH, 1, otherT=thick*2, inv=false);
-        }
+        translate([i*w/5,-(h-sH)/2,thick/2+eps])
+        rotate([180,90,0])
+        fingerH(sH, 1, otherT=thick*2, inv=false);
+       
+        for(i=[-1:1:1])
+        translate([i*w/3,-(h-sH)/2,-thick/2-eps])
+        cylinder(thick+2*eps, r=15);
     }
 }
 
 
-//frame_simple(400,100);
+//frame_side(400,100);
 //frame_nre_f1();
 
 boxW = 400;
@@ -151,12 +157,12 @@ union() {
     color("blue")
     translate([-boxW/2+thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
-    frame_simple(boxL,boxH,inv=true);
+    frame_side(boxL,boxH,supportH,inv=true);
 
     color("blue")
     translate([boxW/2-thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
-    frame_simple(boxL,boxH,inv=true);
+    frame_side(boxL,boxH,supportH,inv=true);
     
     color("deepskyblue", 0.2)
     translate([-boxW/5,boxL/2-thick/2,0])
@@ -168,10 +174,10 @@ union() {
     rotate([90,0,90])
     frame_support(boxL,boxH,supportH);
     
-/*    color("orange", 0.2)
+    color("orange", 0.2)
     translate([0,boxL/2,0])
     rotate([90,0,0])
-    frame_nre_f1_intermediate(75); */
+    frame_nre_f1_intermediate(75);
     
     color("green")
     rotate([90,0,0])
@@ -183,7 +189,7 @@ projection()
     gap = 2;
     translate([0,-boxH,0]) frame_nre_f1(supportH);
     translate([boxW+gap,-boxH]) frame_nre_f1(supportH);
-    translate([0,-2*boxH-gap,0]) frame_simple(boxL,boxH,inv=true);
-    translate([boxL+gap,-2*boxH-gap,0]) frame_simple(boxL,boxH,inv=true);
+    translate([0,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
+    translate([boxL+gap,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
 }
 
