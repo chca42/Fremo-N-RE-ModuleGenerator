@@ -1,8 +1,9 @@
 
 eps = .01;
-thick = 8;
-lasRad = .05;
+thick = 6;
+lasRad = .0;
 lasWid = 2*lasRad;
+trackTh = 33;
 
 module xoffs(offs) { translate([offs,0,0]) children(); }
 module yoffs(offs) { translate([0,offs,0]) children(); }
@@ -34,17 +35,45 @@ module fingerH(H, N, selfT=thick, otherT=thick, inv=false)
 
 module fingerV(W, N, selfT=thick, otherT=thick, inv=false)
 {
-    rotate([0,0,90])
+    translate([0, otherT, 0])
+    rotate([0,0,-90])
     fingerH(W,N,selfT,otherT,inv);
 }
 
 module track_single(height, length)
 {
     translate([0, height/2+3-thick/2, -length/2+thick/2])
-    ccube([37.5, thick, length]);
+    difference()
+    {
+        ccube([37.5, thick, length]);
+
+        translate([-thick/2,0,0])
+        rotate([-90,0,0])
+        fingerH(length, 30, inv=true);
+    }
 }
 
-module frame(width, height, inv=false, N=4)
+module track_t(height, length)
+{
+    //translate([0, height/2+3-thick/2, -length/2+thick/2])
+    //rotate([0,0,90])
+    difference()
+    {
+        ccube([length, trackTh, thick]);
+        
+        translate([-thick/2,0,0])
+        fingerH(trackTh, 1, otherT=thick);
+        translate([-length/2-thick,0,0])
+        fingerH(trackTh, 1, otherT=thick*3);
+        translate([length/2-thick*2,0,0])
+        fingerH(trackTh, 1, otherT=thick*3);
+        
+        yoffs(+trackTh/2-thick+2*eps)
+        fingerV(length, 30);
+    }
+}
+
+module frame(width, height, inv=false, N=4, otherT=thick)
 {
     difference()
     {
@@ -52,11 +81,11 @@ module frame(width, height, inv=false, N=4)
         children();
         
         xoffs(-width/2)
-        fingerH(height, N, inv=inv);
+        fingerH(height, N, otherT=otherT, inv=inv);
 
         rotate([0,180,0])
         xoffs(-width/2)
-        fingerH(height, N, inv=inv);
+        fingerH(height, N, otherT=otherT, inv=inv);
     }
 }
 
@@ -64,7 +93,7 @@ module frame_side(width, height, sH, inv=false)
 {
     difference()
     {
-        frame(width, height, inv)
+        frame(width, height, inv, otherT=thick*2)
         ccube([width,height,thick]);
         
         translate([thick/2,-(height-sH)/2,thick/2])
@@ -78,7 +107,7 @@ module frame_support(width, height, sH)
     translate([0,-(height-sH)/2,0])
     difference()
     {
-        frame(width, sH, inv=false)
+        frame(width, sH, inv=false, otherT=thick*2)
         ccube([width,sH,thick]);
         
         for(i=[-1:2:1])
@@ -103,6 +132,10 @@ module frame_nre_f1(sH)
         import("profiles/n-re-f1.svg");
         
         track_single(h, thick);
+
+        // finger for track t support
+        translate([-thick/2,sH/2,0])
+        fingerH(trackTh, 1, otherT=thick, inv=true);
         
         for(i=[-1:2:1])
         translate([i*w/5,-(h-sH)/2,thick/2])
@@ -124,6 +157,10 @@ module frame_nre_f1_intermediate(sH)
         import("profiles/n-re-f1-intermediate.svg");
         
         track_single(h, thick);
+        
+        // finger for track t support
+        translate([-thick/2,sH/2,0])
+        fingerH(33, 1, otherT=thick, inv=true);
 
         for(i=[-1:2:1])
         translate([i*w/5,-(h-sH)/2,thick/2+eps])
@@ -152,6 +189,7 @@ union() {
     rotate([90,0,0])
     frame_nre_f1(supportH);
 
+    color("yellow")
     rotate([90,0,0])
     frame_nre_f1(supportH);
 
@@ -183,6 +221,11 @@ union() {
     color("green")
     rotate([90,0,0])
     track_single(boxH, boxL);
+    
+    color("pink")
+    translate([0,boxL/2-thick/2,boxH/2-trackTh/2+thick/2])
+    rotate([90,0,90])
+    track_t(boxH,boxL);
 }
 
 projection()
@@ -196,5 +239,6 @@ projection()
     translate([boxL+gap,-3*boxH-gap+hdiff/2,0]) frame_support(boxL,boxH,supportH);
     translate([0,-4*boxH-gap,0]) frame_nre_f1_intermediate(75);
     translate([boxL*1.5+gap,-4*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
+    translate([boxL+gap,-4.5*boxH-gap,0]) track_t(boxH,boxL);
 }
 
