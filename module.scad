@@ -4,6 +4,7 @@ thick = 6;
 lasRad = .0;
 lasWid = 2*lasRad;
 trackTh = 33;
+edgeSup = 50;
 
 module xoffs(offs) { translate([offs,0,0]) children(); }
 module yoffs(offs) { translate([0,offs,0]) children(); }
@@ -99,6 +100,11 @@ module frame_side(width, height, sH, inv=false)
         translate([thick/2,-(height-sH)/2,thick/2])
         rotate([0,90,0])
         fingerH(sH, 4, otherT=thick*2, inv=true);
+        
+        for(i=[-1:2:1])
+        translate([i*(-width/2+edgeSup/2+thick),0,-thick/2])
+        rotate([90,0,0])
+        fingerV(edgeSup, 4, otherT=thick, inv=true);
     }
 }
 
@@ -141,8 +147,14 @@ module frame_nre_f1(sH)
         translate([i*w/5,-(h-sH)/2,thick/2])
         rotate([0,90,0])
         fingerH(sH, 4, otherT=thick*2, inv=true);
+
+        for(i=[-1:2:1])
+        translate([i*(-w/2+edgeSup/2),0,-thick/2])
+        rotate([90,0,0])
+        fingerV(edgeSup, 4, otherT=thick, inv=true);
     }
 }
+
 
 module frame_nre_f1_intermediate(sH)
 {
@@ -173,9 +185,22 @@ module frame_nre_f1_intermediate(sH)
     }
 }
 
-
-//frame_side(400,100);
-//frame_nre_f1();
+module edge_support()
+{
+    l = edgeSup;
+    difference()
+    {
+        translate([-l/2,-l/2,-thick/2])
+        linear_extrude(thick)
+        polygon([[0,0],[l,0],[l,10],[10,l],[0,l]]);
+        
+        xoffs(-l/2) yoffs(thick)
+        fingerH(l, 4, otherT=thick, inv=false);
+        
+        yoffs(-l/2)
+        fingerV(l, 4, otherT=2*thick, inv=false);
+    }
+}
 
 boxW = 400;
 boxL = 400;
@@ -203,17 +228,17 @@ union() {
     rotate([90,0,90])
     frame_side(boxL,boxH,supportH,inv=true);
     
-    color("deepskyblue", 0.2)
+    color("deepskyblue")
     translate([-boxW/5,boxL/2-thick/2,0])
     rotate([90,0,90])
     frame_support(boxL,boxH,supportH);
 
-    color("deepskyblue", 0.2)
+    color("deepskyblue")
     translate([boxW/5,boxL/2-thick/2,0])
     rotate([90,0,90])
     frame_support(boxL,boxH,supportH);
     
-    color("orange", 0.2)
+    color("orange")
     translate([0,boxL/2,0])
     rotate([90,0,0])
     frame_nre_f1_intermediate(75);
@@ -226,9 +251,13 @@ union() {
     translate([0,boxL/2-thick/2,boxH/2-trackTh/2+thick/2])
     rotate([90,0,90])
     track_t(boxH,boxL);
+
+    color("deepskyblue")
+    translate([-boxW/2+edgeSup/2,edgeSup/2-thick/2,0])
+    edge_support();
 }
 
-projection()
+!projection()
 {
     gap = 2;
     translate([0,-boxH,0]) frame_nre_f1(supportH);
@@ -237,8 +266,10 @@ projection()
     translate([boxL+gap,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
     translate([0,-3*boxH-gap+hdiff/2,0]) frame_support(boxL,boxH,supportH);
     translate([boxL+gap,-3*boxH-gap+hdiff/2,0]) frame_support(boxL,boxH,supportH);
-    translate([0,-4*boxH-gap,0]) frame_nre_f1_intermediate(75);
-    translate([boxL*1.5+gap,-4*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
-    translate([boxL+gap,-4.5*boxH-gap,0]) track_t(boxH,boxL);
+    translate([0,-4*boxH-gap-15,0]) frame_nre_f1_intermediate(75);
+    translate([boxL*1.5+gap,-3.6*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
+    translate([boxL+gap,-4.0*boxH-gap,0]) track_t(boxH,boxL);
+    translate([-boxW/2+edgeSup-10,-3.63*boxH-gap,0])
+        for(i=[0,1,4,5,6]) translate([edgeSup*1.1*i,0,0]) rotate([0,0,90]) edge_support();
 }
 
