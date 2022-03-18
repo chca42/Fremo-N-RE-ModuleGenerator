@@ -102,7 +102,12 @@ module frame_side(width, height, sH, inv=false)
         fingerH(sH, 4, otherT=thick*2, inv=true);
         
         for(i=[-1:2:1])
-        translate([i*(-width/2+edgeSup/2+thick),0,-thick/2])
+        translate([i*(-width/2+edgeSup/2+thick),8,-thick/2])
+        rotate([90,0,0])
+        fingerV(edgeSup, 4, otherT=thick, inv=true);
+        
+        for(i=[-1:2:1])
+        translate([i*(-width/2+edgeSup/2+thick),-height/2+thick/2,-thick/2])
         rotate([90,0,0])
         fingerV(edgeSup, 4, otherT=thick, inv=true);
     }
@@ -149,9 +154,15 @@ module frame_nre_f1(sH)
         fingerH(sH, 4, otherT=thick*2, inv=true);
 
         for(i=[-1:2:1])
-        translate([i*(-w/2+edgeSup/2),0,-thick/2])
+        translate([i*(-w/2+edgeSup/2),8,-thick/2])
         rotate([90,0,0])
         fingerV(edgeSup, 4, otherT=thick, inv=true);
+
+        for(i=[-1:2:1])
+        translate([i*(-w/2+edgeSup/2),-h/2+thick/2,-thick/2])
+        rotate([90,0,0])
+        fingerV(edgeSup, 4, otherT=thick, inv=true);
+
     }
 }
 
@@ -269,7 +280,9 @@ union() {
     translate([0,-4*boxH-gap-15,0]) frame_nre_f1_intermediate(75);
     translate([boxL*1.5+gap,-3.6*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
     translate([boxL+gap,-4.0*boxH-gap,0]) track_t(boxH,boxL);
-    translate([-boxW/2+edgeSup-10,-3.63*boxH-gap,0])
+    translate([-boxW/2+edgeSup-15,-3.63*boxH-gap,0])
         for(i=[0,1,4,5,6]) translate([edgeSup*1.1*i,0,0]) rotate([0,0,90]) edge_support();
+    translate([boxW/2+gap+edgeSup,-4.4*boxH-gap,0])
+        for(i=[0,1,2,3,4]) translate([edgeSup*1.1*i,0,0]) rotate([0,0,90]) edge_support();
 }
 
