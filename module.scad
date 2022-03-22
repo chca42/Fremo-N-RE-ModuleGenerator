@@ -62,7 +62,7 @@ module track_t(height, length)
     {
         ccube([length, trackTh, thick]);
         
-        translate([-thick/2,0,0])
+        translate([0,0,0])
         fingerH(trackTh, 1, otherT=thick);
         translate([-length/2-thick,0,0])
         fingerH(trackTh, 1, otherT=thick*3);
@@ -145,7 +145,7 @@ module frame_nre_f1(sH)
         track_single(h, thick);
 
         // finger for track t support
-        translate([-thick/2,sH/2,0])
+        translate([-thick/2,h/2-trackTh/2+thick/2,0])
         fingerH(trackTh, 1, otherT=thick, inv=true);
         
         for(i=[-1:2:1])
@@ -182,7 +182,7 @@ module frame_nre_f1_intermediate(sH)
         track_single(h, thick);
         
         // finger for track t support
-        translate([-thick/2,sH/2,0])
+        translate([-thick/2,h/2-trackTh/2+thick/2,0])
         fingerH(33, 1, otherT=thick, inv=true);
 
         for(i=[-1:2:1])
@@ -223,54 +223,66 @@ union() {
     color("red")
     translate([0,boxL-thick,0])
     rotate([90,0,0])
+    render()
     frame_nre_f1(supportH);
 
     color("yellow")
     rotate([90,0,0])
+    render()
     frame_nre_f1(supportH);
 
     color("blue")
     translate([-boxW/2+thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
+    render()
     frame_side(boxL,boxH,supportH,inv=true);
 
     color("blue")
     translate([boxW/2-thick/2,boxL/2-thick/2,0])
     rotate([90,0,90])
+    render()
     frame_side(boxL,boxH,supportH,inv=true);
     
     color("deepskyblue")
     translate([-boxW/5,boxL/2-thick/2,0])
     rotate([90,0,90])
+    render()
     frame_support(boxL,boxH,supportH);
 
     color("deepskyblue")
     translate([boxW/5,boxL/2-thick/2,0])
     rotate([90,0,90])
+    render()
     frame_support(boxL,boxH,supportH);
     
     color("orange")
     translate([0,boxL/2,0])
     rotate([90,0,0])
+    render()
     frame_nre_f1_intermediate(75);
     
     color("green")
     rotate([90,0,0])
+    render()
     track_single(boxH, boxL);
     
-    color("pink")
+    color("pink",0.5)
     translate([0,boxL/2-thick/2,boxH/2-trackTh/2+thick/2])
     rotate([90,0,90])
+    render()
     track_t(boxH,boxL);
 
     color("deepskyblue")
     translate([-boxW/2+edgeSup/2,edgeSup/2-thick/2,0])
+    render()
     edge_support();
 }
 
 !projection()
 {
     gap = 2;
+    translate([boxW+10*gap,10*gap,0]) frame_nre_f1(supportH);
+    translate([boxW+10*gap,12*gap+boxH,0]) frame_nre_f1(supportH);
     translate([0,-boxH,0]) frame_nre_f1(supportH);
     translate([boxW+gap,-boxH]) frame_nre_f1(supportH);
     translate([0,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
