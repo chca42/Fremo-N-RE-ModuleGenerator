@@ -62,7 +62,7 @@ module track_t(height, length)
     {
         ccube([length, trackTh, thick]);
         
-        translate([0,0,0])
+        translate([-thick,0,0])
         fingerH(trackTh, 1, otherT=thick);
         translate([-length/2-thick,0,0])
         fingerH(trackTh, 1, otherT=thick*3);
