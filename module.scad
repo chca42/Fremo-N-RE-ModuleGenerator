@@ -3,8 +3,9 @@ eps = .01;
 thick = 6;
 lasRad = .0;
 lasWid = 2*lasRad;
+cutWid = 0.3; // retract finger depth to avoid poking out
 trackTh = 33;
-edgeSup = 50;
+edgeSup = 60;
 
 module xoffs(offs) { translate([offs,0,0]) children(); }
 module yoffs(offs) { translate([0,offs,0]) children(); }
@@ -34,11 +35,23 @@ module fingerH(H, N, selfT=thick, otherT=thick, inv=false)
     }
 }
 
+module fingerHcut(H, selfT=thick, otherT=thick)
+{
+    ccube([cutWid*2, H+eps, selfT+eps]);
+}
+
 module fingerV(W, N, selfT=thick, otherT=thick, inv=false)
 {
+    // TODO: implement without rotate (many side-effects)
     translate([0, otherT, 0])
     rotate([0,0,-90])
     fingerH(W,N,selfT,otherT,inv);
+}
+
+module fingerVcut(W, selfT=thick, otherT=thick)
+{
+    //translate([0,otherT,0])
+    ccube([W+eps, cutWid*2, selfT+eps]);
 }
 
 module track_single(height, length)
@@ -63,14 +76,16 @@ module track_t(height, length)
         ccube([length, trackTh, thick]);
         
         translate([-thick,0,0])
-        fingerH(trackTh, 1, otherT=thick);
+        fingerH(trackTh, 1, otherT=thick*2);
         translate([-length/2-thick,0,0])
         fingerH(trackTh, 1, otherT=thick*3);
         translate([length/2-thick*2,0,0])
         fingerH(trackTh, 1, otherT=thick*3);
         
-        yoffs(+trackTh/2-thick+2*eps)
+        yoffs(+trackTh/2-thick+2*eps) // TODO: rotate requires -thick
         fingerV(length, 30);
+        yoffs(+trackTh/2+2*eps) // TODO: remove when rotate removed
+        fingerVcut(length);
     }
 }
 
@@ -82,11 +97,17 @@ module frame(width, height, inv=false, N=4, otherT=thick)
         children();
         
         xoffs(-width/2)
-        fingerH(height, N, otherT=otherT, inv=inv);
+        {
+            fingerH(height, N, otherT=otherT, inv=inv);
+            fingerHcut(height);
+        }
 
         rotate([0,180,0])
         xoffs(-width/2)
-        fingerH(height, N, otherT=otherT, inv=inv);
+        {
+            fingerH(height, N, otherT=otherT, inv=inv);
+            fingerHcut(height);
+        }
     }
 }
 
@@ -97,9 +118,9 @@ module frame_side(width, height, sH, inv=false)
         frame(width, height, inv, otherT=thick*2)
         ccube([width,height,thick]);
         
-        translate([thick/2,-(height-sH)/2,thick/2])
+        translate([0,-(height-sH)/2,thick/2])
         rotate([0,90,0])
-        fingerH(sH, 4, otherT=thick*2, inv=true);
+        fingerH(sH, 4, selfT=thick*2, otherT=thick*2, inv=true);
         
         for(i=[-1:2:1])
         translate([i*(-width/2+edgeSup/2+thick),8,-thick/2])
@@ -131,13 +152,13 @@ module frame_support(width, height, sH)
     }
 }
 
-module frame_nre_f1(sH)
+module frame_nre_f1(sH, intSup=true)
 {
     w = 400;
     h = 100;
     difference()
     {
-        frame(w, h)
+        frame(w, h, otherT=thick*2)
         translate([-w/2,-h/2,-thick/2])
         linear_extrude(thick)
         import("profiles/n-re-f1.svg");
@@ -148,18 +169,14 @@ module frame_nre_f1(sH)
         translate([-thick/2,h/2-trackTh/2+thick/2,0])
         fingerH(trackTh, 1, otherT=thick, inv=true);
         
+        if(intSup)
         for(i=[-1:2:1])
         translate([i*w/5,-(h-sH)/2,thick/2])
         rotate([0,90,0])
         fingerH(sH, 4, otherT=thick*2, inv=true);
 
         for(i=[-1:2:1])
-        translate([i*(-w/2+edgeSup/2),8,-thick/2])
-        rotate([90,0,0])
-        fingerV(edgeSup, 4, otherT=thick, inv=true);
-
-        for(i=[-1:2:1])
-        translate([i*(-w/2+edgeSup/2),-h/2+thick/2,-thick/2])
+        translate([i*(-w/2+thick+edgeSup/2),8,-thick/2])
         rotate([90,0,0])
         fingerV(edgeSup, 4, otherT=thick, inv=true);
 
@@ -196,6 +213,31 @@ module frame_nre_f1_intermediate(sH)
     }
 }
 
+
+module frame_nre_f1_intermediate_B(sH, otherT=thick*2)
+{
+    w = 400;
+    h = 100;
+    difference()
+    {
+        translate([0,-(h-sH)/2,0])
+        frame(w,sH, otherT=otherT)
+        translate([-w/2,-sH/2,-thick/2])
+        linear_extrude(thick)
+        import("profiles/n-re-f1-intermediate.svg");
+        
+        track_single(h, thick);
+        
+        // finger for track t support
+        translate([-thick/2,h/2-trackTh/2+thick/2,0])
+        fingerH(33, 1, otherT=thick, inv=true);
+
+        for(i=[-1:1:1])
+        translate([i*w/3,-(h-sH)/2,-thick/2-eps])
+        cylinder(thick+2*eps, r=15);
+    }
+}
+
 module edge_support()
 {
     l = edgeSup;
@@ -206,10 +248,16 @@ module edge_support()
         polygon([[0,0],[l,0],[l,10],[10,l],[0,l]]);
         
         xoffs(-l/2) yoffs(thick)
-        fingerH(l, 4, otherT=thick, inv=false);
+        {
+            fingerH(l, 4, otherT=2*thick, inv=false);
+            fingerHcut(l);
+        }
         
-        yoffs(-l/2)
-        fingerV(l, 4, otherT=2*thick, inv=false);
+        yoffs(-l/2) xoffs(thick)
+        {
+            fingerV(l, 4, otherT=2*thick, inv=false);
+            fingerVcut(l, otherT=2*thick);
+        }
     }
 }
 
@@ -219,7 +267,7 @@ boxH = 100;
 supportH = 75;
 hdiff = boxH-supportH;
 
-union() {
+*union() {
     color("red")
     translate([0,boxL-thick,0])
     rotate([90,0,0])
@@ -273,12 +321,59 @@ union() {
     track_t(boxH,boxL);
 
     color("deepskyblue")
-    translate([-boxW/2+edgeSup/2,edgeSup/2-thick/2,0])
+    translate([-boxW/2+edgeSup/2,edgeSup/2-thick/2,8])
     render()
     edge_support();
 }
 
-!projection()
+union() {
+    color("red")
+    translate([0,boxL-thick,0])
+    rotate([90,0,0])
+    render()
+    frame_nre_f1(supportH, intSup=false);
+
+    color("yellow")
+    rotate([90,0,0])
+    render()
+    frame_nre_f1(supportH, intSup=false);
+
+    color("blue")
+    translate([-boxW/2+thick/2,boxL/2-thick/2,0])
+    rotate([90,0,90])
+    render()
+    frame_side(boxL,boxH,supportH,inv=true);
+
+    color("blue")
+    translate([boxW/2-thick/2,boxL/2-thick/2,0])
+    rotate([90,0,90])
+    render()
+    frame_side(boxL,boxH,supportH,inv=true);
+    
+    color("orange")
+    translate([0,boxL/2,0])
+    rotate([90,0,0])
+    render()
+    frame_nre_f1_intermediate_B(75);
+
+    color("green")
+    rotate([90,0,0])
+    render()
+    track_single(boxH, boxL);
+    
+    color("pink",0.5)
+    translate([0,boxL/2-thick/2,boxH/2-trackTh/2+thick/2])
+    rotate([90,0,90])
+    render()
+    track_t(boxH,boxL);
+
+    color("deepskyblue")
+    translate([-boxW/2+edgeSup/2,edgeSup/2-thick/2,8])
+    render()
+    edge_support();
+}
+
+*projection()
 {
     gap = 2;
     translate([boxW+10*gap,10*gap,0]) frame_nre_f1(supportH);
@@ -297,4 +392,22 @@ union() {
     translate([boxW/2+gap+edgeSup,-4.4*boxH-gap,0])
         for(i=[0,1,2,3,4]) translate([edgeSup*1.1*i,0,0]) rotate([0,0,90]) edge_support();
 }
+
+
+projection()
+{
+    gap = 2;
+    translate([0,-boxH,0]) frame_nre_f1(supportH);
+    translate([0,-2*boxH-gap,0]) frame_side(boxL,boxH,supportH,inv=true);
+
+    translate([0,-4*boxH-gap-15,0]) frame_nre_f1_intermediate(75);
+    translate([0,-3*boxH-gap-10,0]) frame_nre_f1_intermediate(75);
+    
+    translate([boxL*1.5+gap,-3.5*boxH-gap,0]) rotate([90,0,90]) track_single(boxH, boxL);
+    translate([boxL+gap,-3.9*boxH-gap,0]) track_t(boxH,boxL);
+    
+    translate([boxW/2+gap+edgeSup/2+5,-4.4*boxH-gap,0])
+        for(i=[0,1,2,3,4,5]) translate([edgeSup*1.1*i,0,0]) rotate([0,0,90]) edge_support();
+}
+
 
